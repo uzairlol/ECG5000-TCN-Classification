@@ -1,4 +1,3 @@
-```markdown
 # ECG Anomaly Detection with Temporal Convolutional Networks (TCN)
 
 This project aims to detect anomalies in ECG data using a Temporal Convolutional Network (TCN) model. The project involves training a model, calculating anomaly scores, and visualizing detected anomalies in ECG data.
@@ -112,5 +111,3 @@ pip install numpy pandas matplotlib darts
 
 - The project utilizes the `Darts` library for time series modeling and the `matplotlib` library for visualization.
 - Special thanks to the open-source community for providing valuable tools and resources.
-
-```
