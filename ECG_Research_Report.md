@@ -80,6 +80,23 @@ The models were trained and tested on the standard train/test split of the ECG50
 | **Contrastive SSL (Linear Probe)** | **10% (40 samples)** | 87.82% | 84.36% | 0.9412 |
 | **Contrastive SSL (Linear Probe)** | 100% (400 samples) | 89.60% | 87.21% | 0.9646 |
 
+### 3.2 Visualizations & Qualitative Results
+
+#### A. Contrastive Latent Space Topology
+Below is the PCA projection of the test set representations learned by SimCLR during self-supervised pretraining (without labels). The TCN encoder successfully clusters normal and anomalous heartbeats into distinct topologies:
+
+![Latent Space PCA Projection](artifacts/ssl_latent_space.png)
+
+#### B. Downstream Data-Efficiency Performance Curve
+The chart below shows accuracy and F1 score scaling as we increase the percentage of labeled training signals, demonstrating high performance even with only 4 labeled signals (1% regime):
+
+![Data Efficiency Curve](artifacts/ssl_data_efficiency.png)
+
+#### C. Autoencoder Reconstruction Fidelity
+The denoising autoencoder learns to reconstruct healthy ECG signals. When encountering normal signals, reconstruction error is minimal, whereas anomalous heartbeats generate significant reconstruction failures (which serve as anomaly scores):
+
+![Reconstruction Examples](artifacts/reconstruction_examples.png)
+
 ---
 
 ## 4. Discussion & Key Takeaways
