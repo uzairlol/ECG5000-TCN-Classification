@@ -68,6 +68,11 @@ def build_tensor_dataset(features: np.ndarray, labels: np.ndarray) -> TensorData
     return TensorDataset(feature_tensor, label_tensor)
 
 
+def build_reconstruction_dataset(features: np.ndarray) -> TensorDataset:
+    feature_tensor = torch.as_tensor(features, dtype=torch.float32).unsqueeze(1)
+    return TensorDataset(feature_tensor, feature_tensor.clone())
+
+
 @dataclass
 class ECGDatasetBundle:
     train_frame: pd.DataFrame

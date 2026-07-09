@@ -1,2 +1,0 @@
-[console_scripts]
-ecg5000-train = ecg_project.cli:main

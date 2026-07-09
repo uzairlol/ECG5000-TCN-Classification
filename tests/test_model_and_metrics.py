@@ -3,6 +3,7 @@ import torch
 
 from ecg_project.evaluation import anomaly_predictions, best_threshold_from_validation, classification_metrics
 from ecg_project.model import ECGTCNClassifier
+from ecg_project.reconstruction import ECGDenoisingReconstructionModel
 
 
 def test_model_forward_shape():
@@ -12,6 +13,15 @@ def test_model_forward_shape():
     logits = model(inputs)
 
     assert logits.shape == (4, 2)
+
+
+def test_reconstruction_model_forward_shape():
+    model = ECGDenoisingReconstructionModel()
+    inputs = torch.randn(4, 1, 140)
+
+    reconstructions = model(inputs)
+
+    assert reconstructions.shape == inputs.shape
 
 
 def test_threshold_and_metrics_pipeline():

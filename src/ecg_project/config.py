@@ -36,3 +36,7 @@ class ProjectConfig:
     evaluation_summary_name: str = "evaluation_summary.json"
     predictions_name: str = "evaluation_predictions.csv"
     confusion_matrix_name: str = "confusion_matrix.csv"
+    reconstruction_checkpoint_name: str = "ecg_reconstruction.ckpt"
+    reconstruction_summary_name: str = "ecg_reconstruction_summary.json"
+    reconstruction_predictions_name: str = "ecg_reconstruction_predictions.csv"
+    reconstruction_confusion_matrix_name: str = "ecg_reconstruction_confusion_matrix.csv"
