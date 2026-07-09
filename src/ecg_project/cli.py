@@ -32,6 +32,8 @@ from .evaluation import (
 from .model import ECGTCNClassifier
 from .reconstruction import ECGDenoisingReconstructionModel
 from .preprocessing import load_scaler, prepare_arrays, save_scaler
+from .ssl_model import ECGSimCLR
+from .augmentations import ContrastiveECGDataset
 
 
 def collect_probabilities(model: ECGTCNClassifier, loader) -> tuple[np.ndarray, np.ndarray]:
@@ -333,7 +335,67 @@ def run_evaluation(config: ProjectConfig) -> None:
         threshold,
     )
     for name, value in metrics.items():
-        print(f"{name}: {value:.4f}")
+         print(f"{name}: {value:.4f}")
+ 
+ 
+def run_ssl_training(config: ProjectConfig) -> None:
+    seed_everything(config.data.random_state, workers=True)
+    train_frame, test_frame = load_dataset(config.data)
+    train_frame, validation_frame = split_train_validation(
+        train_frame,
+        validation_size=config.data.validation_size,
+        random_state=config.data.random_state,
+    )
+    arrays, scaler = prepare_arrays(train_frame, validation_frame, test_frame)
+
+    train_dataset = ContrastiveECGDataset(
+        torch.as_tensor(arrays.train_features, dtype=torch.float32),
+        torch.as_tensor(arrays.train_labels, dtype=torch.long)
+    )
+    validation_dataset = ContrastiveECGDataset(
+        torch.as_tensor(arrays.validation_features, dtype=torch.float32),
+        torch.as_tensor(arrays.validation_labels, dtype=torch.long)
+    )
+    
+    train_loader = DataLoader(train_dataset, batch_size=config.model.batch_size, shuffle=True)
+    validation_loader = DataLoader(validation_dataset, batch_size=config.model.batch_size)
+
+    model = ECGSimCLR(
+        input_length=config.model.input_length,
+        channels=config.model.channels,
+        kernel_size=config.model.kernel_size,
+        dropout=config.model.dropout,
+        learning_rate=config.model.learning_rate,
+        weight_decay=config.model.weight_decay,
+    )
+    checkpoint = ModelCheckpoint(
+        dirpath=config.artifacts_dir,
+        filename=config.ssl_checkpoint_name.replace(".ckpt", ""),
+        monitor="val_loss",
+        mode="min",
+        save_top_k=1,
+    )
+    early_stopping = EarlyStopping(monitor="val_loss", patience=5, mode="min")
+    trainer = Trainer(
+        max_epochs=config.model.max_epochs,
+        callbacks=[checkpoint, early_stopping],
+        default_root_dir=config.artifacts_dir,
+        accelerator="auto",
+        devices="auto",
+        log_every_n_steps=10,
+    )
+
+    trainer.fit(model, train_loader, validation_loader)
+    if not checkpoint.best_model_path:
+        raise RuntimeError("SSL pretraining finished without a best checkpoint being recorded.")
+        
+    config.artifacts_dir.mkdir(parents=True, exist_ok=True)
+    save_scaler(scaler, config.artifacts_dir / config.scaler_name)
+
+    best_checkpoint_path = Path(checkpoint.best_model_path)
+    canonical_checkpoint_path = config.artifacts_dir / config.ssl_checkpoint_name
+    if best_checkpoint_path.resolve() != canonical_checkpoint_path.resolve():
+        copy2(best_checkpoint_path, canonical_checkpoint_path)
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -344,6 +406,8 @@ def build_parser() -> argparse.ArgumentParser:
     subparsers.add_parser("evaluate", help="Evaluate saved outputs and metrics")
     subparsers.add_parser("pretrain", help="Train the self-supervised reconstruction model")
     subparsers.add_parser("detect", help="Evaluate the self-supervised anomaly detector")
+    subparsers.add_parser("ssl-pretrain", help="Pretrain the TCN using contrastive learning")
+    subparsers.add_parser("ssl-probe", help="Evaluate pretrained TCN using linear probing")
     return parser
 
 
@@ -360,6 +424,8 @@ def main() -> None:
         run_reconstruction_training(config)
     elif args.command == "detect":
         run_reconstruction_evaluation(config)
+    elif args.command == "ssl-pretrain":
+        run_ssl_training(config)
 
 
 if __name__ == "__main__":

@@ -40,3 +40,4 @@ class ProjectConfig:
     reconstruction_summary_name: str = "ecg_reconstruction_summary.json"
     reconstruction_predictions_name: str = "ecg_reconstruction_predictions.csv"
     reconstruction_confusion_matrix_name: str = "ecg_reconstruction_confusion_matrix.csv"
+    ssl_checkpoint_name: str = "ecg_ssl_encoder.ckpt"
