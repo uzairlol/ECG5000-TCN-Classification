@@ -62,20 +62,20 @@ ecg5000-train --help
 
 ## CLI Usage Guide
 
-The package provides a unified CLI `ecg5000-train` with four distinct modes:
+The package provides a unified CLI that can be run directly via the Conda Python interpreter:
 
 ### Pipeline A: Supervised Classification
 
 #### Step 1: Train the Classifier
 Fits a supervised TCN model. Best checkpoints are saved to `artifacts/ecg_tcn.ckpt`.
 ```bash
-ecg5000-train train
+& C:/ProgramData/miniconda3/envs/ml/python.exe -m ecg_project.cli train
 ```
 
 #### Step 2: Evaluate the Classifier
 Calibrates decision threshold on validation data and outputs metrics, predictions, and visualization plots on test data.
 ```bash
-ecg5000-train evaluate
+& C:/ProgramData/miniconda3/envs/ml/python.exe -m ecg_project.cli evaluate
 ```
 
 ---
@@ -85,13 +85,13 @@ ecg5000-train evaluate
 #### Step 1: Train the Reconstruction Model
 Trains a denoising TCN autoencoder strictly on normal ECG signals (Label `1`). Checkpoint is saved to `artifacts/ecg_reconstruction.ckpt`.
 ```bash
-ecg5000-train pretrain
+& C:/ProgramData/miniconda3/envs/ml/python.exe -m ecg_project.cli pretrain
 ```
 
 #### Step 2: Detect Anomalies
 Evaluates the reconstruction error on validation data to calibrate a detection threshold, then flags test samples and outputs plots.
 ```bash
-ecg5000-train detect
+& C:/ProgramData/miniconda3/envs/ml/python.exe -m ecg_project.cli detect
 ```
 
 ---
