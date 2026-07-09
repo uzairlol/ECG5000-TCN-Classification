@@ -35,6 +35,7 @@ from .preprocessing import load_scaler, prepare_arrays, save_scaler
 from .ssl_model import ECGSimCLR
 from .augmentations import ContrastiveECGDataset
 from .probing import extract_features, run_linear_probing
+from .visualization import save_latent_space_figure, save_data_efficiency_figure
 
 
 def collect_probabilities(model: ECGTCNClassifier, loader) -> tuple[np.ndarray, np.ndarray]:
@@ -441,6 +442,17 @@ def run_ssl_evaluation(config: ProjectConfig) -> None:
         print(f"  Accuracy:  {metrics['accuracy']:.4f}")
         print(f"  F1 Score:  {metrics['f1_score']:.4f}")
         print(f"  ROC-AUC:   {metrics['roc_auc']:.4f}")
+
+    # Save visualization plots
+    config.artifacts_dir.mkdir(parents=True, exist_ok=True)
+    latent_plot_path = config.artifacts_dir / "ssl_latent_space.png"
+    efficiency_plot_path = config.artifacts_dir / "ssl_data_efficiency.png"
+    
+    print(f"\nSaving latent space visualization to {latent_plot_path}...")
+    save_latent_space_figure(test_feats, test_labs, latent_plot_path)
+    
+    print(f"Saving data efficiency curve to {efficiency_plot_path}...")
+    save_data_efficiency_figure(probe_results, efficiency_plot_path)
 
 
 def build_parser() -> argparse.ArgumentParser:
