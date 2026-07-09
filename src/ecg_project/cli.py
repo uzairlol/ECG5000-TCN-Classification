@@ -34,6 +34,7 @@ from .reconstruction import ECGDenoisingReconstructionModel
 from .preprocessing import load_scaler, prepare_arrays, save_scaler
 from .ssl_model import ECGSimCLR
 from .augmentations import ContrastiveECGDataset
+from .probing import extract_features, run_linear_probing
 
 
 def collect_probabilities(model: ECGTCNClassifier, loader) -> tuple[np.ndarray, np.ndarray]:
@@ -398,6 +399,50 @@ def run_ssl_training(config: ProjectConfig) -> None:
         copy2(best_checkpoint_path, canonical_checkpoint_path)
 
 
+def run_ssl_evaluation(config: ProjectConfig) -> None:
+    seed_everything(config.data.random_state, workers=True)
+    train_frame, test_frame = load_dataset(config.data)
+    train_frame, validation_frame = split_train_validation(
+        train_frame,
+        validation_size=config.data.validation_size,
+        random_state=config.data.random_state,
+    )
+    
+    scaler_path = config.artifacts_dir / config.scaler_name
+    if not scaler_path.exists():
+        raise FileNotFoundError(f"Scaler not found at {scaler_path}. Please run training or pretraining first.")
+    scaler = load_scaler(scaler_path)
+    
+    arrays, _ = prepare_arrays(train_frame, validation_frame, test_frame, scaler=scaler)
+
+    train_dataset = build_tensor_dataset(arrays.train_features, arrays.train_labels)
+    test_dataset = build_tensor_dataset(arrays.test_features, arrays.test_labels)
+    
+    train_loader = DataLoader(train_dataset, batch_size=config.model.batch_size, shuffle=False)
+    test_loader = DataLoader(test_dataset, batch_size=config.model.batch_size, shuffle=False)
+
+    checkpoint_path = config.artifacts_dir / config.ssl_checkpoint_name
+    if not checkpoint_path.exists():
+        raise FileNotFoundError(f"SSL checkpoint not found at {checkpoint_path}. Please run ssl-pretrain first.")
+        
+    model = ECGSimCLR.load_from_checkpoint(checkpoint_path)
+    model.freeze()
+
+    print("Extracting features from TCN encoder...")
+    train_feats, train_labs = extract_features(model, train_loader)
+    test_feats, test_labs = extract_features(model, test_loader)
+    
+    print("Running Linear Probing benchmarks across low-data regimes...")
+    probe_results = run_linear_probing(train_feats, train_labs, test_feats, test_labs)
+    
+    print("\n=== Linear Probing Results ===")
+    for regime, metrics in probe_results.items():
+        print(f"\nRegime: {regime} (labeled samples: {metrics['samples']})")
+        print(f"  Accuracy:  {metrics['accuracy']:.4f}")
+        print(f"  F1 Score:  {metrics['f1_score']:.4f}")
+        print(f"  ROC-AUC:   {metrics['roc_auc']:.4f}")
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="ECG5000 TCN project")
     subparsers = parser.add_subparsers(dest="command", required=True)
@@ -426,6 +471,8 @@ def main() -> None:
         run_reconstruction_evaluation(config)
     elif args.command == "ssl-pretrain":
         run_ssl_training(config)
+    elif args.command == "ssl-probe":
+        run_ssl_evaluation(config)
 
 
 if __name__ == "__main__":
