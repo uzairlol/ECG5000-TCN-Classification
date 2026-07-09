@@ -1,3 +1,19 @@
+Metadata-Version: 2.4
+Name: ecg5000-tcn-classification
+Version: 0.1.0
+Summary: Modular ECG5000 anomaly classification project with a TCN backbone
+Requires-Python: >=3.10
+Description-Content-Type: text/markdown
+Requires-Dist: numpy
+Requires-Dist: pandas
+Requires-Dist: scikit-learn
+Requires-Dist: matplotlib
+Requires-Dist: joblib
+Requires-Dist: torch
+Requires-Dist: pytorch-lightning
+Provides-Extra: dev
+Requires-Dist: pytest; extra == "dev"
+
 # ECG5000 TCN Classification
 
 This project is being upgraded from a notebook prototype into a modular Python package. The new pipeline treats ECG5000 as a binary classification problem where label `1` is normal and every other label is anomalous.
