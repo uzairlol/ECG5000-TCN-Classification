@@ -1,90 +1,121 @@
-# ECG5000 TCN Classification
+# ECG5000 Anomaly Detection & Classification with Temporal Convolutional Networks (TCN)
 
-This project is being upgraded from a notebook prototype into a modular Python package. The new pipeline treats ECG5000 as a binary classification problem where label `1` is normal and every other label is anomalous.
+[![Python Version](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/)
+[![Framework](https://img.shields.io/badge/PyTorch%20Lightning-2.0%2B-orange.svg)](https://www.pytorchlightning.ai/)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
-## Layout
+A modular, production-grade deep learning pipeline for anomaly detection and binary classification on the **ECG5000 dataset**. The project provides two state-of-the-art architectures using **Temporal Convolutional Networks (TCN)**:
+1. **Supervised Classifier**: Direct classification model with TCN backbone trained on binary labels.
+2. **Self-Supervised Reconstruction**: An anomaly detector trained solely on normal ECG signals, evaluating anomalies using reconstruction error thresholding.
 
-- `src/ecg_project/`: reusable library code
-- `artifacts/`: saved checkpoints and preprocessing objects
-- `src/ecg_project/cli.py`: command-line entry point
-- `Attempts/`: legacy notebook experiments kept for reference
+---
 
-## Project Flow
+## Key Features
 
-- `train` loads the ECG5000 train/test files, creates a validation split from training data, fits the scaler on train only, trains the TCN classifier, and saves the best checkpoint plus the fitted scaler.
-- `evaluate` reloads the saved checkpoint and scaler, calibrates the anomaly threshold on validation probabilities, and reports classification metrics on the test split.
-- The notebook is no longer the primary workflow; it is kept only as historical reference.
+- **TCN Backbone**: High-fidelity feature extraction using dilated causal convolutions.
+- **Robust Preprocessing**: Standardized scaling using `RobustScaler` fit strictly on training splits.
+- **Calibrated Thresholding**: Automatic detection threshold calibration on validation set probability distributions.
+- **Dual Pipeline**: Switch seamlessly between fully-supervised classification and self-supervised reconstruction-based anomaly detection.
+- **Comprehensive Visualization**: Generates confusion matrices, probability/score distributions, and reconstruction quality comparisons automatically.
 
-## Install
+---
 
-Use an editable install so the package can be imported from scripts and tests.
+## Directory Structure
 
-```bash
-pip install -e .
+```
+├── data/                    # ECG5000 Train/Test datasets (ARFF, TS, TXT)
+├── src/
+│   └── ecg_project/         # Core python package
+│       ├── cli.py           # CLI entry point command parser
+│       ├── config.py        # Configuration and hyperparameters
+│       ├── data.py          # PyTorch dataset builders & dataloaders
+│       ├── evaluation.py    # Metric calculation & figure generators
+│       ├── model.py         # Supervised TCN classifier model
+│       ├── preprocessing.py # Scaler and data transformation utilities
+│       ├── reconstruction.py# Self-supervised denoising reconstruction model
+│       └── visualization.py # Figure plotting utilities
+├── tests/                   # Suite of unit tests for data, model & preprocessing
+├── artifacts/               # Directory for checkpoints, scalers, and plots (ignored by git)
+├── pyproject.toml           # Package installation and dependency metadata
+└── .gitignore               # Excludes build, cache, and artifact outputs
 ```
 
-## Train
+---
 
+## Installation & Setup
+
+Set up the project using your existing environment.
+
+### 1. Install Package
+Install the package in editable mode along with development dependencies:
+```bash
+& C:/ProgramData/miniconda3/envs/ml/python.exe -m pip install -e .[dev]
+```
+
+### 2. Verify Installation
+Verify that the entry point `ecg5000-train` is successfully installed:
+```bash
+ecg5000-train --help
+```
+
+---
+
+## CLI Usage Guide
+
+The package provides a unified CLI `ecg5000-train` with four distinct modes:
+
+### Pipeline A: Supervised Classification
+
+#### Step 1: Train the Classifier
+Fits a supervised TCN model. Best checkpoints are saved to `artifacts/ecg_tcn.ckpt`.
 ```bash
 ecg5000-train train
 ```
 
-## Evaluate
-
+#### Step 2: Evaluate the Classifier
+Calibrates decision threshold on validation data and outputs metrics, predictions, and visualization plots on test data.
 ```bash
 ecg5000-train evaluate
 ```
 
-## Self-Supervised Upgrade
+---
 
-This repo also includes a reconstruction-based anomaly detector that trains only on normal ECGs and scores anomalies using reconstruction error.
+### Pipeline B: Self-Supervised Anomaly Detection
 
-Train it with:
-
+#### Step 1: Train the Reconstruction Model
+Trains a denoising TCN autoencoder strictly on normal ECG signals (Label `1`). Checkpoint is saved to `artifacts/ecg_reconstruction.ckpt`.
 ```bash
 ecg5000-train pretrain
 ```
 
-Evaluate it with:
-
+#### Step 2: Detect Anomalies
+Evaluates the reconstruction error on validation data to calibrate a detection threshold, then flags test samples and outputs plots.
 ```bash
 ecg5000-train detect
 ```
 
-Its outputs are saved under `artifacts/` with the `ecg_reconstruction.*` filenames.
+---
 
-## Artifacts
+## Testing
 
-After training, the project writes the following files to `artifacts/`:
+Run unit tests to verify the integrity of dataset creation, model structures, and preprocessing pipelines:
+```bash
+& C:/ProgramData/miniconda3/envs/ml/python.exe -m pytest
+```
 
-- `ecg_tcn.ckpt`: the best validation checkpoint copied to a stable filename
-- `scaler.joblib`: the fitted `RobustScaler` used for inference
+---
 
-### Saved Visuals
+## Output Artifacts & Visualizations
 
-Classifier evaluation also saves:
+Upon evaluation/detection, the following outputs are generated inside the `artifacts/` folder:
 
-- `classifier_confusion_matrix.png`
-- `classifier_score_distribution.png`
-
-Self-supervised reconstruction detection also saves:
-
-- `reconstruction_confusion_matrix.png`
-- `reconstruction_score_distribution.png`
-- `reconstruction_examples.png`
-
-You can embed the generated figures directly in the README:
-
-![Classifier confusion matrix](artifacts/classifier_confusion_matrix.png)
-
-![Classifier score distribution](artifacts/classifier_score_distribution.png)
-
-![Reconstruction examples](artifacts/reconstruction_examples.png)
-
-## What Changed
-
-- The code is now organized as a package instead of a single notebook.
-- The raw ECG rows are treated as individual samples rather than a fake time series.
-- Validation monitoring now uses validation loss.
-- The old z-score anomaly logic is replaced by a threshold calibrated from validation data.
-- The scaler is saved separately so inference is reproducible.
+- **Checkpoints & Scalers**:
+  - `ecg_tcn.ckpt` & `ecg_reconstruction.ckpt`: Model weight files.
+  - `scaler.joblib`: Fitted preprocessing configuration.
+- **Metrics**:
+  - `evaluation_summary.json` / `ecg_reconstruction_summary.json`: Precision, Recall, F1-Score, and ROC-AUC.
+  - `confusion_matrix.csv` / `ecg_reconstruction_confusion_matrix.csv`: Tabular raw matrix.
+- **Visuals**:
+  - `classifier_confusion_matrix.png` / `reconstruction_confusion_matrix.png`
+  - `classifier_score_distribution.png` / `reconstruction_score_distribution.png`
+  - `reconstruction_examples.png` (Reconstruction only)
