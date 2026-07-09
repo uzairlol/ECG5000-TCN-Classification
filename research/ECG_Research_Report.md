@@ -1,8 +1,7 @@
 # Evaluating Self-Supervised and Contrastive Representation Learning for Label-Efficient ECG Anomaly Detection
 
-**Author**: Uzair Arif
+**Author**: Uzair Arif  
 **Repository**: [ECG5000-TCN-Classification](https://github.com/uzairlol/ECG5000-TCN-Classification)
-**Date**: July 2026
 
 ---
 
@@ -58,9 +57,7 @@ A standard end-to-end classifier where the TCN backbone extracts temporal featur
 
 The model is trained strictly on **healthy/normal ECG signals (Label 1)**. It learns to compress the signal into a low-dimensional bottleneck and reconstruct it. During inference:
 
-$$
-\text{Score} = \text{MSE}(x, \hat{x})
-$$
+$$\text{Score} = \text{MSE}(x, \hat{x})$$
 
 A decision threshold is calibrated on the validation split's reconstruction error distribution to isolate anomalies.
 
@@ -83,13 +80,13 @@ The models were trained and tested on the standard train/test split of the ECG50
 
 ### 3.1 Quantitative Benchmarks
 
-| Training Paradigm                        |     Labeled Train Size     |  Test Accuracy  |  Test F1-Score  |   Test ROC-AUC   |
-| :--------------------------------------- | :-------------------------: | :--------------: | :--------------: | :--------------: |
-| **Fully-Supervised Classifier**    |     100% (400 samples)     | **97.64%** | **97.12%** | **0.9954** |
-| **Unsupervised Reconstruction**    | 0% (trained on normal only) |        —        |      84.46%      |      0.8977      |
-| **Contrastive SSL (Linear Probe)** |  **1% (4 samples)**  |      79.76%      |      77.22%      |      0.8583      |
-| **Contrastive SSL (Linear Probe)** | **10% (40 samples)** |      87.82%      |      84.36%      |      0.9412      |
-| **Contrastive SSL (Linear Probe)** |     100% (400 samples)     |      89.60%      |      87.21%      |      0.9646      |
+| Training Paradigm | Labeled Train Size | Test Accuracy | Test F1-Score | Test ROC-AUC |
+| :--- | :---: | :---: | :---: | :---: |
+| **Fully-Supervised Classifier** | 100% (400 samples) | **97.64%** | **97.12%** | **0.9954** |
+| **Unsupervised Reconstruction** | 0% (trained on normal only) | — | 84.46% | 0.8977 |
+| **Contrastive SSL (Linear Probe)** | **1% (4 samples)** | 79.76% | 77.22% | 0.8583 |
+| **Contrastive SSL (Linear Probe)** | **10% (40 samples)** | 87.82% | 84.36% | 0.9412 |
+| **Contrastive SSL (Linear Probe)** | 100% (400 samples) | 89.60% | 87.21% | 0.9646 |
 
 ### 3.2 Visualizations & Qualitative Results
 
@@ -97,19 +94,19 @@ The models were trained and tested on the standard train/test split of the ECG50
 
 Below is the PCA projection of the test set representations learned by SimCLR during self-supervised pretraining (without labels). The TCN encoder successfully clusters normal and anomalous heartbeats into distinct topologies:
 
-![Latent Space PCA Projection](artifacts/ssl_latent_space.png)
+![Latent Space PCA Projection](../artifacts/ssl_latent_space.png)
 
 #### B. Downstream Data-Efficiency Performance Curve
 
 The chart below shows accuracy and F1 score scaling as we increase the percentage of labeled training signals, demonstrating high performance even with only 4 labeled signals (1% regime):
 
-![Data Efficiency Curve](artifacts/ssl_data_efficiency.png)
+![Data Efficiency Curve](../artifacts/ssl_data_efficiency.png)
 
 #### C. Autoencoder Reconstruction Fidelity
 
 The denoising autoencoder learns to reconstruct healthy ECG signals. When encountering normal signals, reconstruction error is minimal, whereas anomalous heartbeats generate significant reconstruction failures (which serve as anomaly scores):
 
-![Reconstruction Examples](artifacts/reconstruction_examples.png)
+![Reconstruction Examples](../artifacts/reconstruction_examples.png)
 
 ---
 
@@ -117,16 +114,16 @@ The denoising autoencoder learns to reconstruct healthy ECG signals. When encoun
 
 ### 4.1 The Power of Low-Data Regimes
 
-The standout result of this research is the performance of Contrastive SSL in low-data scenarios. With **only 4 labeled samples**, the linear probe achieved an **F1-Score of 78.05%**. This means that with almost zero expert annotations, a device can be deployed to accurately filter cardiac abnormalities.
+The standout result of this research is the performance of Contrastive SSL in low-data scenarios. With **only 4 labeled samples**, the linear probe achieved an **F1-Score of 77.22%**. This means that with almost zero expert annotations, a device can be deployed to accurately filter cardiac abnormalities.
 
 ### 4.2 Reconstruction vs. Contrastive Representations
 
-- **Denoising Autoencoders** excel at detecting *any* deviation from normal behavior (F1-score: `84.49%`). However, they do not build clusterable structures of different anomalies in the latent space; they only flag reconstruction failures.
+- **Denoising Autoencoders** excel at detecting *any* deviation from normal behavior (F1-score: `84.46%`). However, they do not build clusterable structures of different anomalies in the latent space; they only flag reconstruction failures.
 - **Contrastive Learning** learns a structured, class-separable topology in the latent space. As a result, the representations are immediately ready for multi-class classification or clustering, which is essential for diagnosing *specific types* of anomalies.
 
 ### 4.3 Gap Between Probing and End-to-End Supervised
 
-While the fully-supervised TCN model scores `97.69%` accuracy, it requires high-quality labels for all training samples and runs the risk of overfitting to specific patient cohorts. The contrastive model, despite being frozen, achieves competitive classification performance, confirming that the learned representations capture the fundamental morphology of the cardiac cycle.
+While the fully-supervised TCN model scores `97.64%` accuracy, it requires high-quality labels for all training samples and runs the risk of overfitting to specific patient cohorts. The contrastive model, despite being frozen, achieves competitive classification performance, confirming that the learned representations capture the fundamental morphology of the cardiac cycle.
 
 ---
 
@@ -138,4 +135,3 @@ Future work will expand this framework by:
 
 1. Evaluating cross-dataset transferability (e.g., training on ECG5000 and testing on MIT-BIH Arrhythmia Database).
 2. Incorporating 1D saliency mapping (Integrated Gradients) to explain what features in the QRS complex dominate the contrastive representation.
-
