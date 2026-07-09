@@ -9,7 +9,7 @@
 ## Abstract
 Continuous electrocardiogram (ECG) monitoring is crucial for detecting cardiac arrhythmias. However, clinical annotations are expensive and scarce. In this study, we evaluate three paradigms for anomaly detection and classification on the **ECG5000 dataset** using a **Temporal Convolutional Network (TCN)** backbone: (1) fully-supervised learning, (2) unsupervised reconstruction-based anomaly detection via denoising autoencoders, and (3) contrastive self-supervised learning (SSL) via SimCLR. 
 
-Our findings demonstrate that contrastive learning learns robust, generalizable representations of cardiac waveforms. Specifically, with only **4 labeled samples (1% of training labels)**, a linear classifier trained on our frozen contrastive features achieves **80.49% accuracy** and a **0.8659 ROC-AUC**. With **10% of labels (40 samples)**, performance scales to **87.89% accuracy** and a **0.9414 ROC-AUC**, proving the immense clinical value of SSL in label-scarce regimes.
+Our findings demonstrate that contrastive learning learns robust, generalizable representations of cardiac waveforms. Specifically, with only **4 labeled samples (1% of training labels)**, a linear classifier trained on our frozen contrastive features achieves **79.76% accuracy** and a **0.8583 ROC-AUC**. With **10% of labels (40 samples)**, performance scales to **87.82% accuracy** and a **0.9412 ROC-AUC**, proving the immense clinical value of SSL in label-scarce regimes.
 
 ---
 
@@ -74,11 +74,11 @@ The models were trained and tested on the standard train/test split of the ECG50
 
 | Training Paradigm | Labeled Train Size | Test Accuracy | Test F1-Score | Test ROC-AUC |
 | :--- | :---: | :---: | :---: | :---: |
-| **Fully-Supervised Classifier** | 100% (400 samples) | **97.69%** | **97.24%** | **0.9955** |
-| **Unsupervised Reconstruction** | 0% (trained on normal only) | — | 84.49% | 0.8971 |
-| **Contrastive SSL (Linear Probe)** | **1% (4 samples)** | 80.49% | 78.05% | 0.8659 |
-| **Contrastive SSL (Linear Probe)** | **10% (40 samples)** | 87.89% | 84.38% | 0.9414 |
-| **Contrastive SSL (Linear Probe)** | 100% (400 samples) | 89.42% | 86.89% | 0.9636 |
+| **Fully-Supervised Classifier** | 100% (400 samples) | **97.64%** | **97.12%** | **0.9954** |
+| **Unsupervised Reconstruction** | 0% (trained on normal only) | — | 84.46% | 0.8977 |
+| **Contrastive SSL (Linear Probe)** | **1% (4 samples)** | 79.76% | 77.22% | 0.8583 |
+| **Contrastive SSL (Linear Probe)** | **10% (40 samples)** | 87.82% | 84.36% | 0.9412 |
+| **Contrastive SSL (Linear Probe)** | 100% (400 samples) | 89.60% | 87.21% | 0.9646 |
 
 ---
 
