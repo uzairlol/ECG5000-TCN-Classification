@@ -96,6 +96,22 @@ Evaluates the reconstruction error on validation data to calibrate a detection t
 
 ---
 
+### Pipeline C: Self-Supervised Contrastive Learning (Research Mode)
+
+#### Step 1: Pretrain via Contrastive Loss (SimCLR / NT-Xent)
+Pretrains the TCN encoder backbone using raw unlabeled ECG signals with temporal and amplitude augmentations. Checkpoint is saved to `artifacts/ecg_ssl_encoder.ckpt`.
+```bash
+& C:/ProgramData/miniconda3/envs/ml/python.exe -m ecg_project.cli ssl-pretrain
+```
+
+#### Step 2: Evaluate representations via Linear Probing
+Freezes the pretrained TCN encoder, extracts representations, and evaluates them by training a Logistic Regression model on varying proportions of labeled training data (1%, 10%, 100%).
+```bash
+& C:/ProgramData/miniconda3/envs/ml/python.exe -m ecg_project.cli ssl-probe
+```
+
+---
+
 ## Testing
 
 Run unit tests to verify the integrity of dataset creation, model structures, and preprocessing pipelines:
