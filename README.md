@@ -35,12 +35,51 @@ ecg5000-train train
 ecg5000-train evaluate
 ```
 
+## Self-Supervised Upgrade
+
+This repo also includes a reconstruction-based anomaly detector that trains only on normal ECGs and scores anomalies using reconstruction error.
+
+Train it with:
+
+```bash
+ecg5000-train pretrain
+```
+
+Evaluate it with:
+
+```bash
+ecg5000-train detect
+```
+
+Its outputs are saved under `artifacts/` with the `ecg_reconstruction.*` filenames.
+
 ## Artifacts
 
 After training, the project writes the following files to `artifacts/`:
 
 - `ecg_tcn.ckpt`: the best validation checkpoint copied to a stable filename
 - `scaler.joblib`: the fitted `RobustScaler` used for inference
+
+### Saved Visuals
+
+Classifier evaluation also saves:
+
+- `classifier_confusion_matrix.png`
+- `classifier_score_distribution.png`
+
+Self-supervised reconstruction detection also saves:
+
+- `reconstruction_confusion_matrix.png`
+- `reconstruction_score_distribution.png`
+- `reconstruction_examples.png`
+
+You can embed the generated figures directly in the README:
+
+![Classifier confusion matrix](artifacts/classifier_confusion_matrix.png)
+
+![Classifier score distribution](artifacts/classifier_score_distribution.png)
+
+![Reconstruction examples](artifacts/reconstruction_examples.png)
 
 ## What Changed
 
